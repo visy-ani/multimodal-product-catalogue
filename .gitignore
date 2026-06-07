@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Generated catalogue artefacts (rebuilt by `make ingest`)
+catalogue_intel/data/

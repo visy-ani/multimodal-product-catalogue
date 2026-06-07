@@ -1,0 +1,105 @@
+{
+  "categories": [
+    "chairs",
+    "lamps",
+    "sofas",
+    "tables"
+  ],
+  "catalogue": [
+    {
+      "id": "c1",
+      "title": "Ergonomic Blue Office Chair",
+      "category": "chairs",
+      "colour": "blue",
+      "image": "chair_blue.jpg"
+    },
+    {
+      "id": "c2",
+      "title": "Red Leather Armchair",
+      "category": "chairs",
+      "colour": "red",
+      "image": "chair_red.jpg"
+    },
+    {
+      "id": "c3",
+      "title": "Brown Wooden Dining Chair",
+      "category": "chairs",
+      "colour": "brown",
+      "image": "chair_brown.jpg"
+    },
+    {
+      "id": "c4",
+      "title": "Black Gaming Chair",
+      "category": "chairs",
+      "colour": "black",
+      "image": "chair_black.jpg"
+    },
+    {
+      "id": "l1",
+      "title": "Black Adjustable Desk Lamp",
+      "category": "lamps",
+      "colour": "black",
+      "image": "lamp_black.jpg"
+    },
+    {
+      "id": "l2",
+      "title": "Brass Table Lamp",
+      "category": "lamps",
+      "colour": "brass",
+      "image": "lamp_brass.jpg"
+    },
+    {
+      "id": "s1",
+      "title": "Grey Fabric Three-Seater Sofa",
+      "category": "sofas",
+      "colour": "grey",
+      "image": "sofa_grey.jpg"
+    },
+    {
+      "id": "s2",
+      "title": "Brown Leather Sofa",
+      "category": "sofas",
+      "colour": "brown",
+      "image": "sofa_brown.jpg"
+    },
+    {
+      "id": "t1",
+      "title": "Wooden Coffee Table",
+      "category": "tables",
+      "colour": "brown",
+      "image": "table_brown.jpg"
+    },
+    {
+      "id": "t2",
+      "title": "Black Metal Side Table",
+      "category": "tables",
+      "colour": "black",
+      "image": "table_black.jpg"
+    }
+  ],
+  "queries": [
+    {
+      "id": "q_chair",
+      "expected_category": "chairs",
+      "colour": "green",
+      "image": "query_chair_green.jpg"
+    },
+    {
+      "id": "q_lamp",
+      "expected_category": "lamps",
+      "colour": "yellow",
+      "image": "query_lamp_yellow.jpg"
+    },
+    {
+      "id": "q_table",
+      "expected_category": "tables",
+      "colour": "white",
+      "image": "query_table_white.jpg"
+    }
+  ],
+  "combined_test": {
+    "query_image": "query_chair_green.jpg",
+    "text": "in red leather",
+    "expected_category": "chairs"
+  }
+}

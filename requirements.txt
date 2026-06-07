@@ -1,0 +1,8 @@
+openai>=1.40
+pydantic>=2.6
+numpy>=1.26
+pillow>=10.0
+python-dotenv>=1.0
+rich>=13.0
+pytest>=8.0
+langchain-chroma>=0.1.4   # persistent vector DB backend (Chroma)
