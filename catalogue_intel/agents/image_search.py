@@ -68,11 +68,15 @@ class ImageSearchAgent:
         # 3. Cosine search against the shared index -> [(id, score)].
         hits = self.index.search(vec, top_k)
 
-        # 4. Hydrate each hit into a stable `ProductMatch` contract.
-        return [
-            ProductMatch.from_product(self.products[pid], score)
-            for pid, score in hits
-        ]
+        # 4. Hydrate each hit into a stable `ProductMatch` contract. Skip ids not
+        # present in the products map (defensive: index/catalogue drift).
+        matches: list[ProductMatch] = []
+        for pid, score in hits:
+            product = self.products.get(pid)
+            if product is None:
+                continue
+            matches.append(ProductMatch.from_product(product, score))
+        return matches
 
 
 # --------------------------------------------------------------------------- #
@@ -93,35 +97,35 @@ def _selfcheck() -> None:
         Product(
             id="chair_green",
             title="Green Accent Chair",
-            category="chair",
+            category="chairs",
             attributes=Attributes(colour="green", style="modern", material="fabric", shape="rounded"),
             description="A comfortable green accent chair with a modern silhouette.",
         ),
         Product(
             id="chair_blue",
             title="Blue Dining Chair",
-            category="chair",
+            category="chairs",
             attributes=Attributes(colour="blue", style="modern", material="wood", shape="straight"),
             description="A sturdy blue dining chair made of wood.",
         ),
         Product(
             id="lamp_yellow",
             title="Yellow Desk Lamp",
-            category="lamp",
+            category="lamps",
             attributes=Attributes(colour="yellow", style="industrial", material="metal", shape="angular"),
             description="A bright yellow desk lamp with an adjustable metal arm.",
         ),
         Product(
             id="sofa_blue",
             title="Blue Three-Seat Sofa",
-            category="sofa",
+            category="sofas",
             attributes=Attributes(colour="blue", style="contemporary", material="fabric", shape="rectangular"),
             description="A spacious blue three-seat sofa upholstered in soft fabric.",
         ),
         Product(
             id="table_black",
             title="Black Coffee Table",
-            category="table",
+            category="tables",
             attributes=Attributes(colour="black", style="minimalist", material="glass", shape="rectangular"),
             description="A sleek black coffee table with a glass top.",
         ),

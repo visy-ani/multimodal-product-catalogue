@@ -105,6 +105,12 @@ class AnalyticsAgent:
         latency_ms: float,
     ) -> str:
         """Insert one query event; return the generated query_id (uuid4 hex)."""
+        result_count = int(result_count)
+        latency_ms = float(latency_ms)
+        if result_count < 0:
+            raise ValueError(f"result_count must be >= 0, got {result_count}")
+        if latency_ms < 0:
+            raise ValueError(f"latency_ms must be >= 0, got {latency_ms}")
         query_id = uuid.uuid4().hex
         with self._connect() as conn:
             conn.execute(
@@ -119,8 +125,8 @@ class AnalyticsAgent:
                     session_id,
                     modality,
                     query_text or "",
-                    int(result_count),
-                    float(latency_ms),
+                    result_count,
+                    latency_ms,
                 ),
             )
             conn.commit()
