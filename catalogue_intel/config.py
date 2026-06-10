@@ -28,7 +28,16 @@ BACKOFF_CAP = 30.0                  # high enough to clear a low-RPM window
 # --- Proactive client-side rate limiting (for tiny RPM quotas) ---
 # Set OPENAI_RPM=3 to space requests ~21s apart and avoid 429 storms that would
 # otherwise burn the quota. 0 (default) = no pacing.
-OPENAI_RPM = float(os.environ.get("OPENAI_RPM", "0") or 0)
+_rpm_raw = os.environ.get("OPENAI_RPM", "0") or "0"
+try:
+    OPENAI_RPM = float(_rpm_raw)
+except ValueError as exc:
+    raise RuntimeError(
+        f"OPENAI_RPM must be a number, got {_rpm_raw!r}. "
+        "Set it to 0 (default) or a positive integer like 3."
+    ) from exc
+if OPENAI_RPM < 0:
+    raise RuntimeError(f"OPENAI_RPM must be >= 0, got {OPENAI_RPM}")
 # spacing with a small safety margin so we stay strictly under the quota
 MIN_REQUEST_INTERVAL = (60.0 / OPENAI_RPM) * 1.05 + 0.5 if OPENAI_RPM > 0 else 0.0
 

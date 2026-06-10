@@ -34,6 +34,8 @@ def enrich(client, image_b64: str, title: str = "") -> ProductEnrichment:
     AttributeExtractionAgent and DescriptionAgent separately — needed under a
     tiny RPM quota.
     """
+    if not image_b64 or not image_b64.strip():
+        raise ValueError("enrich() requires a non-empty base64 image string")
     prompt = _ENRICH_PROMPT + (f"\nKnown title: {title}" if title else "")
     messages = [{"role": "user", "content": [{"type": "text", "text": prompt}]}]
     out: EnrichmentOut = client.structured(messages, EnrichmentOut, image_b64=image_b64)

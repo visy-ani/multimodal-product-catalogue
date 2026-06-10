@@ -9,9 +9,13 @@ blue" -> "cheap blue office chair").
 """
 from __future__ import annotations
 
+import logging
+import re
 from pathlib import Path
 from time import perf_counter
 from typing import Optional
+
+log = logging.getLogger(__name__)
 
 from ..models import Intent, ProductMatch, SearchRequest, SearchResponse
 from ..openai_client import encode_image
@@ -20,11 +24,20 @@ from .image_search import ImageSearchAgent
 from .multimodal_search import MultimodalSearchAgent
 from .text_search import TextSearchAgent
 
-# cheap, deterministic cues that a text-only turn is refining the previous one
-_REFINEMENT_CUES = (
-    "now ", "instead", "cheaper", "more ", "less ", "but ", "also ", "make it",
-    "show me", "what about", "in blue", "in red", "in black", "in white",
-    "in green", "smaller", "bigger", "darker", "lighter",
+# Cheap, deterministic cues that a text-only turn is refining the previous one.
+# Prefix cues only fire when the user's text *starts* with them; phrase cues fire
+# when the phrase appears as a word boundary anywhere in the text. This avoids
+# false positives like "more comfortable chair" being treated as a refinement
+# (the bare substring "more " would otherwise match).
+_REFINEMENT_PREFIX_CUES = (
+    "now ", "instead", "but ", "also ", "make it", "show me", "what about",
+)
+_REFINEMENT_PHRASE_CUES = (
+    "cheaper", "in blue", "in red", "in black", "in white", "in green",
+    "smaller", "bigger", "darker", "lighter",
+)
+_REFINEMENT_PHRASE_RE = re.compile(
+    r"\b(?:" + "|".join(re.escape(p) for p in _REFINEMENT_PHRASE_CUES) + r")\b"
 )
 
 
@@ -34,8 +47,10 @@ def _to_b64(image: str) -> str:
         p = Path(image)
         if p.exists():
             return encode_image(p)
-    except OSError:
-        pass  # too long to be a path -> already base64
+    except (OSError, ValueError):
+        # OSError: path too long for the filesystem (long base64 strings).
+        # ValueError: embedded null bytes that Path rejects outright.
+        pass
     return image
 
 
@@ -79,7 +94,9 @@ class OrchestratorAgent:
 
     def _looks_like_refinement(self, text: str) -> bool:
         low = text.lower().strip()
-        return any(low.startswith(c) or c in low for c in _REFINEMENT_CUES)
+        if any(low.startswith(c) for c in _REFINEMENT_PREFIX_CUES):
+            return True
+        return bool(_REFINEMENT_PHRASE_RE.search(low))
 
     def _merge_refinement(self, session_id: str, new_text: str) -> str:
         """Use gpt-4o-mini to fold the previous query into the follow-up."""
@@ -93,8 +110,11 @@ class OrchestratorAgent:
         try:
             merged = self.client.chat(messages).strip()
             return merged or f"{prev} {new_text}"
-        except Exception:
-            return f"{prev} {new_text}"  # never let refinement break a search
+        except Exception as exc:
+            # Never let refinement break a search, but record why we fell back so
+            # silent failures don't hide a broken chat path.
+            log.warning("refinement rewrite failed (%s); using concatenation fallback", exc)
+            return f"{prev} {new_text}"
 
     # -- main entry ------------------------------------------------------- #
     def run(self, req: SearchRequest, top_k: int = 5) -> SearchResponse:
